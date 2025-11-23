@@ -1,0 +1,81 @@
+Dataset shape: (3813, 35)
+Columns: ['zcr', 'rms', 'centroid', 'bw', 'rolloff', 'contrast', 'tonnetz', 'chroma', 'mfcc_1', 'mfcc_2', 'mfcc_3', 'mfcc_4', 'mfcc_5', 'mfcc_6', 'mfcc_7', 'mfcc_8', 'mfcc_9', 'mfcc_10', 'mfcc_11', 'mfcc_12', 'mfcc_13', 'duration', 'label', 'file', 'uuid', 'datetime', 'cough_detected', 'latitude', 'longitude', 'age', 'gender', 'respiratory_condition', 'fever_muscle_pain', 'status', 'status_SSL']
+
+Class distribution:
+status
+healthy        3331
+symptomatic     292
+COVID-19        190
+Name: count, dtype: int64
+Features shape: (3813, 24)
+Target classes: ['COVID-19' 'healthy' 'symptomatic']
+
+Training set: 3050 samples
+Testing set: 763 samples
+
+Training Random Forest...
+Random Forest Results:
+  Accuracy: 0.8729
+  Precision: 0.7815
+  Recall: 0.8729
+  F1-Score: 0.8172
+  CV Accuracy: 0.8741 (+/- 0.0013)
+
+Training SVM...
+SVM Results:
+  Accuracy: 0.8742
+  Precision: 0.7642
+  Recall: 0.8742
+  F1-Score: 0.8155
+  CV Accuracy: 0.8734 (+/- 0.0013)
+
+Training Logistic Regression...
+Logistic Regression Results:
+  Accuracy: 0.8742
+  Precision: 0.7642
+  Recall: 0.8742
+  F1-Score: 0.8155
+  CV Accuracy: 0.8734 (+/- 0.0013)
+
+==================================================
+COMPREHENSIVE MODEL EVALUATION
+==================================================
+
+Model Comparison:
+                 Model  Accuracy  Precision  Recall  F1-Score  CV Accuracy
+0        Random Forest    0.8729     0.7815  0.8729    0.8172       0.8741
+1                  SVM    0.8742     0.7642  0.8742    0.8155       0.8734
+2  Logistic Regression    0.8742     0.7642  0.8742    0.8155       0.8734
+
+Best Model: Random Forest (F1-Score: 0.8172)
+
+==================================================
+DETAILED CLASSIFICATION REPORT - Random Forest
+==================================================
+              precision    recall  f1-score   support
+
+    COVID-19       0.33      0.03      0.05        38
+     healthy       0.88      1.00      0.93       667
+ symptomatic       0.00      0.00      0.00        58
+
+    accuracy                           0.87       763
+   macro avg       0.40      0.34      0.33       763
+weighted avg       0.78      0.87      0.82       763
+
+Accuracy: 0.8729
+Precision (Weighted): 0.7815
+Recall (Weighted): 0.8729
+F1-Score (Weighted): 0.8172
+
+Top 10 Most Important Features:
+           feature  importance
+17         mfcc_10      0.0498
+9           mfcc_2      0.0478
+20         mfcc_13      0.0474
+15          mfcc_8      0.0463
+22  cough_detected      0.0457
+13          mfcc_6      0.0447
+23             age      0.0444
+11          mfcc_4      0.0440
+16          mfcc_9      0.0433
+14          mfcc_7      0.0429
