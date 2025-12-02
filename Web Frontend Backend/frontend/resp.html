@@ -1,0 +1,864 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8" />
+  <title>RespAI | Advanced Respiratory Screening</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Lato:wght@300;400;500;600;700&family=Roboto:wght@400;500;700;900&display=swap" rel="stylesheet" />
+
+  <!-- Tailwind CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              navy: "#00416A",
+              teal: "#00B7AC",
+              orange: "#E85C2E",
+              light: "#F3F6F8",
+            },
+          },
+          fontFamily: {
+            heading: ["Roboto", "sans-serif"],
+            body: ["Lato", "sans-serif"],
+          },
+          boxShadow: {
+            soft: "0 18px 45px rgba(15, 23, 42, 0.08)",
+          },
+        },
+      },
+    };
+  </script>
+
+  <style>
+    body { font-family: "Lato", sans-serif; }
+    .font-heading { font-family: "Roboto", sans-serif; }
+
+    @keyframes pulseRing {
+      0% { transform: scale(0.9); opacity: 0.9; }
+      70% { transform: scale(1.15); opacity: 0; }
+      100% { transform: scale(1.15); opacity: 0; }
+    }
+
+    .recorder-visual .pulse-ring {
+      position: absolute;
+      inset: 0;
+      border-radius: 9999px;
+      border: 2px solid rgba(0, 183, 172, 0.35);
+      opacity: 0.25;
+    }
+
+    .recorder-visual .pulse-ring:nth-child(1) { animation-delay: 0s; }
+    .recorder-visual .pulse-ring:nth-child(2) { animation-delay: 0.7s; }
+
+    .recorder-visual.is-recording .pulse-ring {
+      animation: pulseRing 1.8s ease-out infinite;
+      opacity: 1;
+    }
+  </style>
+</head>
+
+<body class="bg-brand-light text-slate-800">
+
+  <!-- TOP BAR -->
+  <header class="w-full bg-brand-navy text-white text-sm">
+    <div class="max-w-6xl mx-auto px-4 lg:px-6 flex flex-col md:flex-row items-center justify-between py-2">
+      <div class="flex items-center gap-2">
+        <span class="inline-flex items-center justify-center w-6 h-6 rounded-full bg-white/10">
+          <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M3 5.25C3 4.56 3.56 4 4.25 4h3A1.75 1.75 0 019 5.75v2.03a1.75 1.75 0 01-1.53 1.73l-.88.1a.75.75 0 00-.58.44 11.03 11.03 0 006.94 6.94.75.75 0 00.44-.58l.1-.88A1.75 1.75 0 0116.22 14h2.03A1.75 1.75 0 0120 15.75v3A1.75 1.75 0 0118.25 20h-.5C9.28 20 3 13.72 3 6.25v-.5z" />
+          </svg>
+        </span>
+        <span class="font-medium">RespAI Helpline: <a href="tel:1800900800" class="underline-offset-2 hover:underline">1800-900-800</a></span>
+      </div>
+
+      <nav class="flex items-center gap-4 text-xs md:text-sm">
+        <a href="#" class="hover:text-brand-teal">Support</a>
+        <span class="hidden md:block h-4 w-px bg-white/30"></span>
+        <a href="#" class="hover:text-brand-teal">For Partners</a>
+      </nav>
+    </div>
+  </header>
+
+  <!-- NAVBAR -->
+  <nav class="sticky top-0 z-30 bg-white shadow-md border-b border-slate-200/60">
+    <div class="max-w-6xl mx-auto px-4 lg:px-6 flex items-center justify-between py-3">
+      <!-- Logo -->
+      <div class="flex items-center gap-2">
+        <div class="w-9 h-9 rounded-xl bg-brand-navy flex items-center justify-center shadow-soft">
+          <svg class="w-5 h-5 text-brand-teal" fill="none" stroke="currentColor" stroke-width="1.6" viewBox="0 0 24 24">
+            <path d="M12 3v6m0-2c-1.5 0-3 .5-4.2 1.6A5 5 0 006 13v5.5M12 7c1.5 0 3 .5 4.2 1.6A5 5 0 0118 13v5.5" />
+          </svg>
+        </div>
+        <div>
+          <div class="font-heading font-bold text-brand-navy text-lg">RespAI</div>
+          <div class="text-[11px] uppercase tracking-[0.2em] text-slate-500">Respiratory Screening</div>
+        </div>
+      </div>
+
+      <!-- Desktop Nav -->
+      <div class="hidden md:flex items-center gap-8 text-sm">
+        <button data-nav="home" class="text-slate-700 hover:text-brand-teal">Home</button>
+        <button data-nav="about" class="text-slate-700 hover:text-brand-teal">About</button>
+        <button data-services="true" class="text-slate-700 hover:text-brand-teal">Services</button>
+        <button data-nav="contact" class="text-slate-700 hover:text-brand-teal">Contact</button>
+
+        <button data-start-screening
+          class="rounded-full bg-brand-orange text-white px-4 py-2.5 text-sm shadow-soft hover:bg-orange-600">
+          Start Screening
+        </button>
+      </div>
+
+      <!-- Mobile Nav Button -->
+      <button id="mobileMenuButton"
+        class="md:hidden w-9 h-9 border rounded-full flex items-center justify-center border-slate-200 text-slate-700">
+        <svg id="mobileMenuIconOpen" class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2"
+          viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h16" /></svg>
+        <svg id="mobileMenuIconClose" class="w-5 h-5 hidden" fill="none" stroke="currentColor" stroke-width="2"
+          viewBox="0 0 24 24"><path d="M6 18L18 6M6 6l12 12" /></svg>
+      </button>
+    </div>
+
+    <div id="mobileMenu" class="hidden md:hidden border-t bg-white">
+      <div class="max-w-6xl mx-auto px-4 py-3 flex flex-col gap-2 text-sm">
+        <button data-nav="home" class="text-left py-1.5">Home</button>
+        <button data-nav="about" class="text-left py-1.5">About</button>
+        <button data-services="true" class="text-left py-1.5">Services</button>
+        <button data-nav="contact" class="text-left py-1.5">Contact</button>
+
+        <button data-start-screening
+          class="mt-2 rounded-full bg-brand-orange text-white px-4 py-2 shadow-soft">
+          Start Screening
+        </button>
+      </div>
+    </div>
+  </nav>
+
+  <!-- HOME -->
+  <main class="min-h-screen">
+
+    <section data-section="home" class="max-w-6xl mx-auto px-4 lg:px-6 pt-10 pb-16 space-y-16">
+
+      <!-- Hero -->
+      <section class="rounded-3xl bg-gradient-to-r from-brand-navy to-slate-900 text-white px-6 py-10 lg:px-10 lg:py-14 shadow-soft">
+        <div class="grid lg:grid-cols-2 items-center gap-10">
+          <div>
+            <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 border border-white/15 text-xs mb-4">
+              <span class="w-5 h-5 rounded-full bg-brand-teal text-brand-navy flex items-center justify-center text-[10px]">AI</span>
+              AI Respiratory Screening • Privacy Protected
+            </div>
+
+            <h1 class="font-heading text-3xl md:text-4xl lg:text-5xl font-bold">
+              Advanced Cough-Based Screening,
+              <span class="text-brand-teal">Powered by RespAI</span>
+            </h1>
+
+            <p class="text-sm md:text-base text-slate-100/90 mt-4 max-w-xl">
+              RespAI brings advanced audio interpretation and respiratory insights directly to your device — no hospitals, no queues, no paperwork.
+            </p>
+
+            <div class="flex items-center gap-3 mt-6">
+              <button data-start-screening
+                class="rounded-full bg-brand-orange text-white px-5 py-2.5 text-sm md:text-base shadow-soft hover:bg-orange-600">
+                Start Screening Now
+              </button>
+
+              <button data-nav="about"
+                class="rounded-full border border-white/25 text-white px-4 py-2 text-sm hover:bg-white/10">
+                Learn More
+              </button>
+            </div>
+          </div>
+
+          <!-- Hero Visual -->
+          <div class="relative h-64 md:h-72 lg:h-80 flex items-center justify-center">
+            <div class="absolute inset-0 bg-gradient-to-br from-brand-teal/10 to-brand-orange/10 rounded-3xl blur-2xl"></div>
+            <div class="relative bg-white/5 border border-white/15 backdrop-blur-md rounded-3xl w-full max-w-md h-full p-5 shadow-soft flex flex-col justify-between">
+              <div class="flex items-center gap-4">
+                <div class="w-20 h-20 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center">
+                  <svg class="w-12 h-12 text-brand-teal" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.7">
+                    <path d="M12 3v6M12 5c-1.5 0-3 .5-4.2 1.6" />
+                  </svg>
+                </div>
+
+                <div class="flex-1">
+                  <p class="text-[11px] uppercase tracking-[0.2em] text-slate-200/80">Signal View</p>
+                  <div class="h-12 mt-2 flex items-center gap-1">
+                    <div class="h-5 w-1 bg-brand-teal rounded-full"></div>
+                    <div class="h-10 w-1 bg-brand-orange rounded-full"></div>
+                    <div class="h-8 w-1 bg-brand-teal rounded-full"></div>
+                    <div class="h-6 w-1 bg-brand-teal/70 rounded-full"></div>
+                  </div>
+                  <p class="text-[11px] text-slate-100/80 mt-1">Real-time waveform preview</p>
+                </div>
+              </div>
+
+              <div class="border-t border-white/10 pt-4 text-xs flex items-center justify-between">
+                <span class="flex items-center gap-2">
+                  <span class="w-2.5 h-2.5 rounded-full bg-emerald-400"></span>
+                  Ready for Screening
+                </span>
+                <span class="text-slate-200/80">Under 3 minutes</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+
+      <!-- SERVICES GRID -->
+      <section id="servicesSection" class="space-y-6">
+        <h2 class="font-heading text-2xl md:text-3xl text-brand-navy font-semibold">
+          Respiratory Health Plans
+        </h2>
+
+        <div class="grid md:grid-cols-3 gap-6">
+
+          <!-- Wellness -->
+          <article class="bg-white rounded-2xl border border-slate-200 shadow-soft p-5">
+            <div class="w-10 h-10 rounded-xl bg-brand-teal/10 text-brand-teal flex items-center justify-center mb-3">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-width="1.8" d="M4 5.5V9a4 4 0 004 4v3.5" />
+              </svg>
+            </div>
+            <h3 class="font-heading text-lg text-brand-navy font-semibold mb-1">Basic Wellness</h3>
+            <p class="text-sm text-slate-600 mb-3">
+              For individuals who want to monitor respiratory health or track changes over time.
+            </p>
+          </article>
+
+          <!-- Full Body -->
+          <article class="bg-white rounded-2xl border border-slate-200 shadow-soft p-5">
+            <div class="w-10 h-10 rounded-xl bg-brand-navy/10 text-brand-navy flex items-center justify-center mb-3">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-width="1.8" d="M12 4a2 2 0 110 4" />
+              </svg>
+            </div>
+            <h3 class="font-heading text-lg text-brand-navy font-semibold mb-1">Full Respiratory Check</h3>
+            <p class="text-sm text-slate-600 mb-3">
+              A comprehensive analysis including breathing pattern review and symptom profiling.
+            </p>
+          </article>
+
+          <!-- AI Cough Analysis -->
+          <article class="bg-white rounded-2xl border-2 border-brand-teal shadow-soft p-5 relative">
+            <div class="absolute top-0 right-0 bg-brand-teal text-white text-[11px] px-3 py-1 rounded-bl-2xl">Featured</div>
+            <div class="w-10 h-10 rounded-xl bg-brand-orange/10 text-brand-orange flex items-center justify-center mb-3">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-width="1.8" d="M12 3v4a3 3 0 006 0" />
+              </svg>
+            </div>
+            <h3 class="font-heading text-lg text-brand-navy font-semibold mb-1">AI Cough Analysis</h3>
+            <p class="text-sm text-slate-600 mb-3">
+              Capture a short cough sample and receive a RespAI-powered risk indication.
+            </p>
+            <button data-start-screening class="rounded-full bg-brand-orange text-white px-4 py-2 text-xs shadow-soft hover:bg-orange-600">
+              Start Screening
+            </button>
+          </article>
+
+        </div>
+      </section>
+    </section>
+
+    <!-- ABOUT -->
+    <section data-section="about" class="hidden max-w-6xl mx-auto px-4 lg:px-6 pt-10 pb-16 space-y-8">
+      <h2 class="font-heading text-3xl text-brand-navy font-semibold">About RespAI</h2>
+      <p class="text-slate-600">
+        RespAI is an independent digital respiratory assessment tool. It uses acoustic analysis, signal processing, and machine learning to provide early indicators of respiratory stress — without requiring a hospital visit.
+      </p>
+
+      <div class="grid md:grid-cols-3 gap-6 mt-8">
+        <div class="bg-white rounded-2xl border p-5 shadow-soft">
+          <h3 class="font-heading text-brand-navy font-semibold">AI-Driven Insights</h3>
+          <p class="text-sm text-slate-600 mt-1">Your cough audio is analyzed using multiple signal features to estimate respiratory risk.</p>
+        </div>
+        <div class="bg-white rounded-2xl border p-5 shadow-soft">
+          <h3 class="font-heading text-brand-navy font-semibold">Privacy First</h3>
+          <p class="text-sm text-slate-600 mt-1">Recordings are used only during your session and processed securely.</p>
+        </div>
+        <div class="bg-white rounded-2xl border p-5 shadow-soft">
+          <h3 class="font-heading text-brand-navy font-semibold">Easy to Use</h3>
+          <p class="text-sm text-slate-600 mt-1">Just three steps — consent, record, and receive your result.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- APP -->
+    <section data-section="app" class="hidden max-w-6xl mx-auto px-4 lg:px-6 pt-10 pb-16 space-y-8">
+
+      <h2 class="font-heading text-3xl text-brand-navy font-semibold">RespAI Screening App</h2>
+      <p class="text-sm text-slate-600 max-w-2xl">
+        Follow the guided steps to securely record your cough and receive a RespAI-generated triage indication.
+      </p>
+
+      <!-- Steps UI -->
+      <div class="bg-white rounded-2xl border shadow-soft p-4 flex items-center gap-3 overflow-x-auto text-sm">
+        <div class="flex items-center gap-3">
+          <div data-step-indicator="1" class="flex items-center gap-2 text-brand-navy">
+            <div class="w-7 h-7 rounded-full border bg-brand-teal text-white flex items-center justify-center border-brand-teal">1</div>
+            Consent
+          </div>
+          <div class="h-px w-8 bg-slate-200"></div>
+
+          <div data-step-indicator="2" class="flex items-center gap-2 text-slate-500">
+            <div class="w-7 h-7 rounded-full border bg-slate-100 text-slate-600 flex items-center justify-center">2</div>
+            Record
+          </div>
+          <div class="h-px w-8 bg-slate-200"></div>
+
+          <div data-step-indicator="3" class="flex items-center gap-2 text-slate-500">
+            <div class="w-7 h-7 rounded-full border bg-slate-100 text-slate-600 flex items-center justify-center">3</div>
+            Results
+          </div>
+        </div>
+      </div>
+
+      <!-- Steps -->
+
+      <div class="grid lg:grid-cols-[2fr_1fr] gap-6">
+        <!-- LEFT -->
+        <div class="space-y-6">
+
+          <!-- STEP 1 -->
+          <div id="step1" class="app-step bg-white rounded-2xl border shadow-soft p-6 space-y-4">
+            <h3 class="font-heading text-xl text-brand-navy font-semibold">Step 1 — Consent</h3>
+            <p class="text-sm text-slate-600">RespAI requires your permission to access your microphone.</p>
+
+            <label class="flex gap-2 text-sm text-slate-700">
+              <input id="consentCheckbox" type="checkbox"
+                class="w-4 h-4 rounded border-slate-300 text-brand-teal focus:ring-brand-teal">
+              I consent to recording a short cough sample for AI screening.
+            </label>
+
+            <button id="consentContinueButton"
+              class="rounded-full bg-brand-teal text-white px-4 py-2 text-sm shadow-soft disabled:bg-slate-300"
+              disabled>
+              Continue
+            </button>
+          </div>
+
+          <!-- STEP 2 -->
+          <div id="step2" class="app-step hidden bg-white rounded-2xl border shadow-soft p-6 space-y-4">
+
+            <h3 class="font-heading text-xl text-brand-navy font-semibold">Step 2 — Record</h3>
+            <p class="text-sm text-slate-600">Click “Start Recording” and cough naturally 2–3 times.</p>
+
+            <div class="flex gap-6 bg-brand-light p-4 rounded-2xl">
+              <div id="recorderVisual"
+                class="recorder-visual relative w-28 h-28 rounded-full bg-white border flex items-center justify-center shadow-soft">
+                <div class="pulse-ring"></div>
+                <div class="pulse-ring"></div>
+
+                <div class="w-16 h-16 rounded-full bg-brand-navy flex items-center justify-center">
+                  <svg class="w-7 h-7 text-white" fill="none" stroke="currentColor">
+                    <path stroke-width="1.8" d="M12 3v4a3 3 0 006 0" />
+                  </svg>
+                </div>
+              </div>
+
+              <div class="flex-1 text-sm space-y-2">
+                <p class="flex items-center gap-2">
+                  <span id="recordingStatusDot" class="w-2.5 h-2.5 rounded-full bg-slate-300"></span>
+                  <span id="recordingStatusText" class="text-slate-700">Microphone idle</span>
+                </p>
+
+                <p class="flex items-center gap-1 text-xs text-slate-600">
+                  <svg class="w-4 h-4 text-brand-navy" fill="none" stroke="currentColor"><path stroke-width="1.8" d="M12 8v4l3 1.5" /></svg>
+                  <span id="recordingTimer">00:00</span>
+                </p>
+              </div>
+            </div>
+
+            <div id="recordingAlert" class="text-xs text-red-600 hidden"></div>
+
+            <div class="flex items-center gap-3">
+              <button id="startRecordingButton"
+                class="rounded-full bg-brand-teal text-white px-4 py-2 text-sm shadow-soft">
+                Start Recording
+              </button>
+
+              <button id="stopAnalyzeButton"
+                class="rounded-full border border-brand-navy/60 text-brand-navy px-4 py-2 text-sm"
+                disabled>
+                Stop & Analyze
+              </button>
+
+              <button id="cancelScreeningButton" class="text-xs text-slate-500 ml-auto hover:text-slate-700">
+                Cancel
+              </button>
+            </div>
+          </div>
+
+          <!-- STEP 3 -->
+          <div id="step3" class="app-step hidden bg-white rounded-2xl border shadow-soft p-6 space-y-6">
+
+            <div id="analysisLoadingBlock">
+              <h3 class="font-heading text-xl text-brand-navy font-semibold">Step 3 — Processing</h3>
+              <p class="text-sm text-slate-600">RespAI is analyzing your cough sample…</p>
+
+              <div class="flex items-center gap-3 mt-3">
+                <div class="w-10 h-10 rounded-full border-4 border-brand-teal/30 border-t-brand-teal animate-spin"></div>
+                <span class="text-xs text-slate-600">Running acoustic checks…</span>
+              </div>
+            </div>
+
+            <div id="analysisResultBlock" class="hidden space-y-4">
+              <div class="flex items-center justify-between">
+                <h3 class="font-heading text-xl text-brand-navy font-semibold">Result</h3>
+
+                <div id="riskPill"
+                  class="rounded-full px-3 py-1.5 text-xs font-semibold flex items-center gap-2 bg-brand-teal/10 text-brand-teal">
+                  <span id="riskDot" class="w-2.5 h-2.5 rounded-full bg-brand-teal"></span>
+                  <span id="riskLabel">Low Risk</span>
+                </div>
+              </div>
+
+              <div id="riskCard" class="rounded-2xl border p-4 text-sm bg-emerald-50 border-emerald-200">
+                <div class="flex items-start gap-3">
+                  <div id="riskIconWrapper" class="w-7 h-7 rounded-full bg-emerald-500 text-white flex items-center justify-center">
+                    <svg id="riskIcon" class="w-4 h-4" fill="none" stroke="currentColor">
+                      <path stroke-width="2" d="M9 12l2 2 4-4" />
+                    </svg>
+                  </div>
+
+                  <div>
+                    <p id="riskHeadline" class="text-brand-navy font-semibold">Low likelihood of respiratory stress.</p>
+                    <p id="riskDescription" class="text-xs text-slate-700 mt-1">
+                      Continue monitoring symptoms. Seek help if conditions worsen.
+                    </p>
+                    <p id="confidenceText" class="text-[10px] text-slate-500 mt-2 font-mono">
+                      AI Confidence: <span id="confidenceValue">--</span>
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              <div class="flex gap-2">
+                <button id="restartScreeningButton"
+                  class="rounded-full bg-brand-teal text-white px-4 py-2 text-sm shadow-soft">
+                  Restart Screening
+                </button>
+              </div>
+              
+              <p class="text-[10px] text-slate-400 text-center">
+                  Diagnosis provided by RespAI Model v1.0
+              </p>
+            </div>
+            
+            <!-- Error Block -->
+             <div id="errorBlock" class="hidden rounded-2xl border border-red-200 bg-red-50 p-4 text-sm text-red-800">
+                 <p class="font-bold">Connection Error</p>
+                 <p class="text-xs mt-1">Could not connect to the backend server. Is 'main.py' running?</p>
+                 <button onclick="location.reload()" class="mt-3 text-xs underline">Reload Page</button>
+             </div>
+             
+          </div>
+        </div>
+
+        <!-- RIGHT CARD -->
+        <aside class="bg-white rounded-2xl border shadow-soft p-5 text-sm">
+          <h3 class="font-heading text-brand-navy font-semibold">Safety Notice</h3>
+          <p class="text-slate-600 mt-2">
+            RespAI is not a diagnostic tool. Always consult a licensed medical professional for clinical evaluation or emergencies.
+          </p>
+
+          <div class="border-t mt-4 pt-3 text-sm">
+            <p><strong>RespAI Helpline:</strong> 1800-900-800</p>
+            <p><strong>Support:</strong> +91-90000-00000</p>
+            <p><strong>Email:</strong> support@respai.com</p>
+          </div>
+        </aside>
+      </div>
+    </section>
+
+    <!-- CONTACT -->
+    <section data-section="contact" class="hidden max-w-6xl mx-auto px-4 lg:px-6 pt-10 pb-16 space-y-8">
+
+      <h2 class="font-heading text-3xl text-brand-navy font-semibold">Contact RespAI</h2>
+
+      <div class="grid md:grid-cols-2 gap-6">
+        <div class="bg-white rounded-2xl border shadow-soft p-5 space-y-3">
+          <h3 class="font-heading text-brand-navy font-semibold text-lg">Request a Callback</h3>
+          <p class="text-sm text-slate-600">Our team will reach out shortly.</p>
+
+          <form class="space-y-3" onsubmit="event.preventDefault();">
+            <input class="w-full border rounded-xl px-3 py-2" placeholder="Name" />
+            <input class="w-full border rounded-xl px-3 py-2" placeholder="Phone" />
+            <input class="w-full border rounded-xl px-3 py-2" placeholder="City" />
+            <textarea class="w-full border rounded-xl px-3 py-2" rows="3" placeholder="Message"></textarea>
+
+            <button class="rounded-full bg-brand-orange text-white px-4 py-2 shadow-soft text-sm">
+              Submit
+            </button>
+          </form>
+        </div>
+
+        <div class="bg-white rounded-2xl border shadow-soft p-5 text-sm space-y-2">
+          <h3 class="font-heading text-brand-navy font-semibold text-lg">Reach Us</h3>
+          <p><strong>Helpline:</strong> 1800-900-800</p>
+          <p><strong>Support:</strong> +91-90000-00000</p>
+          <p><strong>Email:</strong> support@respai.com</p>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- FOOTER -->
+  <footer class="bg-brand-navy text-white mt-10">
+    <div class="max-w-6xl mx-auto px-4 lg:px-6 py-10">
+      <div class="grid md:grid-cols-4 gap-8 text-sm">
+        <div>
+          <h3 class="font-heading text-lg font-semibold">RespAI</h3>
+          <p class="text-slate-200 text-xs mt-1">AI-powered respiratory screening.</p>
+        </div>
+
+        <div>
+          <h4 class="font-heading font-semibold text-sm mb-2">Quick Links</h4>
+          <button data-nav="home" class="block hover:text-brand-teal">Home</button>
+          <button data-nav="about" class="block hover:text-brand-teal">About</button>
+          <button data-nav="app" class="block hover:text-brand-teal">Screening</button>
+        </div>
+
+        <div>
+          <h4 class="font-heading font-semibold text-sm mb-2">Legal</h4>
+          <p>Privacy Policy</p>
+          <p>Terms of Use</p>
+        </div>
+
+        <div>
+          <h4 class="font-heading font-semibold text-sm mb-2">Contact</h4>
+          <p>Helpline: 1800-900-800</p>
+          <p>Email: support@respai.com</p>
+        </div>
+      </div>
+
+      <div class="border-t border-white/10 mt-6 pt-4 text-[11px]">
+        © <span id="footerYear"></span> RespAI. All rights reserved.
+      </div>
+    </div>
+  </footer>
+
+  <!-- SCRIPT: SPA + Recorder Logic -->
+  <script>
+    /* SPA Navigation */
+    const sections = {
+      home: document.querySelector('[data-section="home"]'),
+      about: document.querySelector('[data-section="about"]'),
+      app: document.querySelector('[data-section="app"]'),
+      contact: document.querySelector('[data-section="contact"]'),
+    };
+
+    function showSection(key) {
+      Object.values(sections).forEach(s => s.classList.add("hidden"));
+      sections[key].classList.remove("hidden");
+      window.scrollTo({ top: 0 });
+    }
+
+    showSection("home");
+
+    document.querySelectorAll("[data-nav]").forEach(btn =>
+      btn.addEventListener("click", () => showSection(btn.dataset.nav))
+    );
+
+    document.querySelectorAll("[data-start-screening]").forEach(btn =>
+      btn.addEventListener("click", () => {
+        showSection("app");
+        goToStep(1);
+      })
+    );
+
+    /* Mobile Menu */
+    const mobileMenuButton = document.getElementById("mobileMenuButton");
+    const mobileMenu = document.getElementById("mobileMenu");
+    const openIcon = document.getElementById("mobileMenuIconOpen");
+    const closeIcon = document.getElementById("mobileMenuIconClose");
+
+    mobileMenuButton.addEventListener("click", () => {
+      mobileMenu.classList.toggle("hidden");
+      openIcon.classList.toggle("hidden");
+      closeIcon.classList.toggle("hidden");
+    });
+
+    /* STEPS */
+    const stepEls = {
+      1: document.getElementById("step1"),
+      2: document.getElementById("step2"),
+      3: document.getElementById("step3")
+    };
+
+    const stepIndicators = {
+      1: document.querySelector('[data-step-indicator="1"]'),
+      2: document.querySelector('[data-step-indicator="2"]'),
+      3: document.querySelector('[data-step-indicator="3"]')
+    };
+
+    function goToStep(n) {
+      Object.values(stepEls).forEach(el => el.classList.add("hidden"));
+      stepEls[n].classList.remove("hidden");
+
+      Object.entries(stepIndicators).forEach(([key, ind]) => {
+        const circle = ind.querySelector(".w-7");
+        if (+key === n) {
+          ind.classList.remove("text-slate-500");
+          ind.classList.add("text-brand-navy");
+          circle.classList.remove("bg-slate-100", "text-slate-600");
+          circle.classList.add("bg-brand-teal", "border-brand-teal", "text-white");
+        } else {
+          ind.classList.add("text-slate-500");
+          ind.classList.remove("text-brand-navy");
+          circle.classList.add("bg-slate-100", "text-slate-600");
+          circle.classList.remove("bg-brand-teal", "text-white");
+        }
+      });
+    }
+
+    /* CONSENT */
+    const consentCheckbox = document.getElementById("consentCheckbox");
+    const consentContinueButton = document.getElementById("consentContinueButton");
+
+    consentCheckbox.addEventListener("change", () => {
+      consentContinueButton.disabled = !consentCheckbox.checked;
+    });
+
+    consentContinueButton.addEventListener("click", () => goToStep(2));
+
+    /* RECORDING LOGIC */
+    let mediaRecorder = null;
+    let stream = null;
+    let chunks = [];
+    let timerInterval = null;
+    let startTime = null;
+    let recorded = false;
+    let audioBlob = null; // Store final audio blob
+
+    const recorderVisual = document.getElementById("recorderVisual");
+    const recordDot = document.getElementById("recordingStatusDot");
+    const recordText = document.getElementById("recordingStatusText");
+    const timerEl = document.getElementById("recordingTimer");
+    const alertBox = document.getElementById("recordingAlert");
+
+    const startBtn = document.getElementById("startRecordingButton");
+    const stopBtn = document.getElementById("stopAnalyzeButton");
+    const cancelBtn = document.getElementById("cancelScreeningButton");
+    const restartBtn = document.getElementById("restartScreeningButton");
+
+    function updateUI(recording) {
+      recorderVisual.classList.toggle("is-recording", recording);
+      recordDot.classList.toggle("bg-red-500", recording);
+      recordDot.classList.toggle("bg-slate-300", !recording);
+      recordText.textContent = recording ? "Recording…" : "Microphone idle";
+    }
+
+    function resetTimer() {
+      clearInterval(timerInterval);
+      timerInterval = null;
+      timerEl.textContent = "00:00";
+    }
+
+    function startTimer() {
+      startTime = Date.now();
+      timerInterval = setInterval(() => {
+        let sec = Math.floor((Date.now() - startTime) / 1000);
+        let m = String(Math.floor(sec / 60)).padStart(2, "0");
+        let s = String(sec % 60).padStart(2, "0");
+        timerEl.textContent = `${m}:${s}`;
+      }, 300);
+    }
+
+    startBtn.addEventListener("click", async () => {
+      alertBox.classList.add("hidden");
+      alertBox.textContent = "";
+
+      try {
+        stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        mediaRecorder = new MediaRecorder(stream);
+
+        chunks = [];
+
+        mediaRecorder.ondataavailable = e => chunks.push(e.data);
+        mediaRecorder.start();
+
+        recorded = true;
+        updateUI(true);
+        startTimer();
+        startBtn.disabled = true;
+        stopBtn.disabled = false;
+
+      } catch (e) {
+        alertBox.textContent = "Microphone access blocked.";
+        alertBox.classList.remove("hidden");
+      }
+    });
+
+    stopBtn.addEventListener("click", () => {
+      if (!recorded) {
+        alertBox.textContent = "Please record first.";
+        alertBox.classList.remove("hidden");
+        return;
+      }
+
+      mediaRecorder.stop();
+      stream.getTracks().forEach(t => t.stop());
+
+      // Create the final Audio Blob
+      mediaRecorder.onstop = () => {
+        audioBlob = new Blob(chunks, { type: 'audio/webm' }); // Or 'audio/wav' depending on browser
+        
+        updateUI(false);
+        resetTimer();
+
+        startBtn.disabled = false;
+        stopBtn.disabled = true;
+
+        goToStep(3);
+        
+        // TRIGGER REAL ANALYSIS instead of simulation
+        sendAudioToBackend(audioBlob);
+      };
+    });
+
+    cancelBtn.addEventListener("click", () => {
+      updateUI(false);
+      resetTimer();
+      goToStep(1);
+      consentCheckbox.checked = false;
+      consentContinueButton.disabled = true;
+    });
+    
+    restartBtn.addEventListener("click", () => {
+         goToStep(1);
+         consentCheckbox.checked = false;
+         consentContinueButton.disabled = true;
+         document.getElementById("analysisResultBlock").classList.add("hidden");
+    });
+
+
+    /* REAL BACKEND INTEGRATION */
+    const loadingBlock = document.getElementById("analysisLoadingBlock");
+    const resultBlock = document.getElementById("analysisResultBlock");
+    const errorBlock = document.getElementById("errorBlock");
+
+    const riskPill = document.getElementById("riskPill");
+    const riskDotEl = document.getElementById("riskDot");
+    const riskLabelEl = document.getElementById("riskLabel");
+    const riskCard = document.getElementById("riskCard");
+    const riskIconWrapper = document.getElementById("riskIconWrapper");
+    const riskHeadline = document.getElementById("riskHeadline");
+    const riskDescription = document.getElementById("riskDescription");
+    const confidenceValueEl = document.getElementById("confidenceValue");
+
+    // The logic to send data to Python
+    async function sendAudioToBackend(blob) {
+      loadingBlock.classList.remove("hidden");
+      resultBlock.classList.add("hidden");
+      errorBlock.classList.add("hidden");
+
+      const formData = new FormData();
+      // 'file' matches the name used in app.py: request.files['file']
+      // 'recording.wav' is the filename Python will see
+      formData.append('file', blob, 'recording.wav');
+
+      try {
+        // Ensure this matches your Flask server URL
+        const response = await fetch('http://localhost:5000/predict', {
+          method: 'POST',
+          body: formData
+        });
+
+        if (!response.ok) {
+            throw new Error(`Server Error: ${response.statusText}`);
+        }
+
+        const data = await response.json();
+        
+        // Process the result
+        displayResult(data);
+
+      } catch (error) {
+        console.error("Backend Error:", error);
+        loadingBlock.classList.add("hidden");
+        errorBlock.classList.remove("hidden");
+      }
+    }
+
+    function displayResult(data) {
+        // data = { diagnosis: "Pneumonia", confidence: 0.95, message: "..." }
+
+        const diagnosis = data.diagnosis || "Unknown";
+        const confidence = data.confidence ? (data.confidence * 100).toFixed(1) + "%" : "--";
+        const message = data.message || "";
+
+        let riskLevel = "Low Risk"; // Default
+
+        // Simple logic to map Disease -> Risk Level
+        // You can adjust these string matches based on exactly what your model outputs
+        const d = diagnosis.toLowerCase();
+        
+        if (d.includes("pneumonia") || d.includes("covid") || d.includes("copd")) {
+            riskLevel = "High Risk";
+        } else if (d.includes("bronchitis") || d.includes("symptomatic")) {
+            riskLevel = "Moderate Risk";
+        } else {
+            riskLevel = "Low Risk";
+        }
+
+        // Apply Styles
+        const styles = {
+          "Low Risk": {
+            pill: "bg-emerald-50 border border-emerald-200 text-emerald-700",
+            dot: "bg-emerald-500",
+            card: "bg-emerald-50 border-emerald-200",
+            icon: "bg-emerald-500",
+            headline: `Diagnosis: ${diagnosis}`,
+            desc: message || "No significant respiratory issues detected."
+          },
+          "Moderate Risk": {
+            pill: "bg-amber-50 border border-amber-200 text-amber-700",
+            dot: "bg-amber-500",
+            card: "bg-amber-50 border-amber-200",
+            icon: "bg-amber-500",
+            headline: `Diagnosis: ${diagnosis}`,
+            desc: message || "Some respiratory symptoms detected. Monitor closely."
+          },
+          "High Risk": {
+            pill: "bg-red-50 border border-red-200 text-red-700",
+            dot: "bg-red-600",
+            card: "bg-red-50 border-red-200",
+            icon: "bg-red-600",
+            headline: `Diagnosis: ${diagnosis}`,
+            desc: message || "Signs of respiratory disease detected. Please consult a doctor."
+          }
+        };
+
+        const style = styles[riskLevel] || styles["Low Risk"];
+
+        // Update DOM
+        riskLabelEl.textContent = riskLevel;
+        riskPill.className = `rounded-full px-3 py-1.5 text-xs font-semibold flex items-center gap-2 ${style.pill}`;
+        riskDotEl.className = `w-2.5 h-2.5 rounded-full ${style.dot}`;
+        riskCard.className = `rounded-2xl border p-4 text-sm ${style.card}`;
+        riskIconWrapper.className = `w-7 h-7 rounded-full text-white flex items-center justify-center ${style.icon}`;
+        
+        riskHeadline.textContent = style.headline;
+        riskDescription.textContent = style.desc;
+        confidenceValueEl.textContent = confidence;
+
+        // Show Result
+        loadingBlock.classList.add("hidden");
+        resultBlock.classList.remove("hidden");
+    }
+
+    /* Footer Year */
+    document.getElementById("footerYear").textContent = new Date().getFullYear();
+  </script>
+</body>
+</html>
