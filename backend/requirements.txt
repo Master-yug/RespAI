@@ -1,0 +1,8 @@
+flask
+flask-cors
+numpy
+pandas
+librosa
+soundfile
+scikit-learn
+praat-parselmouth
