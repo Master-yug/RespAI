@@ -68,8 +68,3 @@ Response shape:
 ## Disclaimers
 RespAI is a demo and not a clinical diagnostic tool. Always consult a licensed medical professional for medical advice.
 
-## Roadmap Ideas
-- Wire up the Node/Express scaffold or remove it
-- Add model versioning and provenance
-- Improve error handling for unsupported audio formats
-- Add unit tests for feature extraction and API validation
